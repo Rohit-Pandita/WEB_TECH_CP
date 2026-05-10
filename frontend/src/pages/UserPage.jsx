@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI, mealAPI, voteAPI } from '../services/api';
 
-const COLLEGES = ['VIT College', 'VIIT College', 'PUCT College', 'COEP College', 'Cummins College'];
+const COLLEGES = ['VIT College', 'VIIT College', 'PICT College', 'COEP College', 'Cummins College'];
 
 export default function UserPage() {
   const navigate = useNavigate();
@@ -34,7 +34,15 @@ export default function UserPage() {
         if (response.data && response.data.role === 'ROLE_USER') {
           setUser(response.data);
           setIsLoggedIn(true);
-          setShowLocationSelection(true);
+
+          const savedLocation = localStorage.getItem('userSelectedLocation') || '';
+          if (savedLocation) {
+            setSelectedLocation(savedLocation);
+            setShowLocationSelection(false);
+            await fetchMeals(savedLocation);
+          } else {
+            setShowLocationSelection(true);
+          }
         }
       } catch (err) {
         // Not logged in
@@ -54,7 +62,14 @@ export default function UserPage() {
       if (response.data.user && response.data.user.role === 'ROLE_USER') {
         setUser(response.data.user);
         setIsLoggedIn(true);
-        setShowLocationSelection(true);
+        const savedLocation = localStorage.getItem('userSelectedLocation') || '';
+        if (savedLocation) {
+          setSelectedLocation(savedLocation);
+          setShowLocationSelection(false);
+          await fetchMeals(savedLocation);
+        } else {
+          setShowLocationSelection(true);
+        }
         setEmail('');
         setPassword('');
       } else if (response.data.user && response.data.user.role === 'ROLE_ADMIN') {
@@ -74,6 +89,7 @@ export default function UserPage() {
   };
 
   const handleLocationSelect = async (location) => {
+    localStorage.setItem('userSelectedLocation', location);
     setSelectedLocation(location);
     setShowLocationSelection(false);
     await fetchMeals(location);
@@ -129,6 +145,7 @@ export default function UserPage() {
       setUser(null);
       setEmail('');
       setPassword('');
+      localStorage.removeItem('userSelectedLocation');
       setSelectedLocation('');
       setShowLocationSelection(false);
       setMeals([]);
@@ -143,10 +160,10 @@ export default function UserPage() {
   // LOGIN SCREEN
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center px-4 py-6">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">🗳️ User Voting System</h2>
+          <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6 sm:mb-8">🗳️ User Voting System</h2>
             
             {loginError && (
               <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -223,10 +240,10 @@ export default function UserPage() {
   // LOCATION SELECTION
   if (showLocationSelection) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center px-4 py-6">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">🏫 Select Your College</h2>
+          <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-2">🏫 Select Your College</h2>
             <p className="text-center text-gray-600 mb-8">Choose your college location to see available meals</p>
             
             <div className="space-y-3">
@@ -257,23 +274,23 @@ export default function UserPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">🗳️ Voting System</h1>
+      <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-5 sm:p-6">
+        <div className="max-w-7xl mx-auto flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold">🗳️ Voting System</h1>
             <p className="text-green-100 mt-1">Welcome, {user?.name || user?.email}</p>
-            <p className="text-green-200 text-sm">📍 {selectedLocation}</p>
+            <p className="text-green-200 text-sm break-words">📍 {selectedLocation}</p>
           </div>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowLocationSelection(true)}
-              className="block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 sm:px-6 py-2 rounded-lg font-semibold transition"
             >
               Change Location
             </button>
             <button
               onClick={handleLogout}
-              className="block bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transition"
+              className="bg-red-500 hover:bg-red-600 text-white px-4 sm:px-6 py-2 rounded-lg font-semibold transition"
             >
               Logout
             </button>
@@ -295,12 +312,12 @@ export default function UserPage() {
 
       {/* Tabs */}
       <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto flex">
+        <div className="max-w-7xl mx-auto flex overflow-x-auto">
           {['meals', 'results'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-4 font-semibold transition ${
+              className={`px-4 sm:px-6 py-4 font-semibold transition whitespace-nowrap ${
                 activeTab === tab
                   ? 'text-green-600 border-b-2 border-green-600'
                   : 'text-gray-600 hover:text-gray-800'
@@ -314,29 +331,33 @@ export default function UserPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {loading && <p className="text-center text-gray-600 text-lg">Loading...</p>}
 
         {/* Meals Tab */}
         {activeTab === 'meals' && !loading && (
           <div>
-            {hasVoted ? (
-              <div className="bg-green-50 rounded-lg shadow-lg p-8 text-center border-2 border-green-200">
-                <div className="text-5xl mb-4">✅</div>
-                <h2 className="text-2xl font-bold text-green-800 mb-2">You already voted today!</h2>
-                <p className="text-green-700 mb-4">
-                  Your vote is for: <strong>{userVote?.meal_name || 'a meal'}</strong>
+            {hasVoted && (
+              <div className="bg-green-50 rounded-lg shadow-lg p-6 mb-6 text-center border-2 border-green-200">
+                <h2 className="text-xl font-bold text-green-800 mb-2">You already voted today</h2>
+                <p className="text-green-700">
+                  Current vote: <strong>{userVote?.meal_name || 'a meal'}</strong>
                 </p>
-                <p className="text-green-600">You can change your vote anytime</p>
+                <p className="text-green-600 text-sm mt-1">Select another meal below to change your vote.</p>
               </div>
-            ) : (
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Choose Your Favorite Meal</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {meals.map(meal => (
+            )}
+
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Choose Your Favorite Meal</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {meals.map(meal => {
+                  const isCurrentVote = Number(userVote?.meal_id) === Number(meal.id);
+                  return (
                     <div
                       key={meal.id}
-                      className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-2 border-gray-100 hover:border-green-500"
+                      className={`bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-2 ${
+                        isCurrentVote ? 'border-green-500' : 'border-gray-100 hover:border-green-500'
+                      }`}
                     >
                       <h3 className="text-xl font-bold text-gray-800 mb-2">{meal.name}</h3>
                       <p className="text-sm text-gray-600 mb-2">🏪 {meal.restaurant_name}</p>
@@ -356,20 +377,24 @@ export default function UserPage() {
                       )}
                       <button
                         onClick={() => handleVote(meal.id)}
-                        className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                        className={`w-full px-4 py-3 text-white rounded-lg font-semibold transition ${
+                          isCurrentVote
+                            ? 'bg-blue-600 hover:bg-blue-700'
+                            : 'bg-green-600 hover:bg-green-700'
+                        }`}
                       >
-                        Vote for {meal.name}
+                        {isCurrentVote ? `Voted: ${meal.name}` : `Vote for ${meal.name}`}
                       </button>
                     </div>
-                  ))}
-                </div>
-                {meals.length === 0 && (
-                  <div className="text-center py-12 bg-gray-100 rounded-lg">
-                    <p className="text-gray-600 text-lg">No meals available for today</p>
-                  </div>
-                )}
+                  );
+                })}
               </div>
-            )}
+              {meals.length === 0 && (
+                <div className="text-center py-12 bg-gray-100 rounded-lg">
+                  <p className="text-gray-600 text-lg">No meals available for today</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -380,8 +405,8 @@ export default function UserPage() {
             {results.length > 0 ? (
               <div className="space-y-4">
                 {results.map((result, idx) => (
-                  <div key={result.id} className="bg-white rounded-lg shadow p-6">
-                    <div className="flex justify-between items-center mb-3">
+                  <div key={result.id} className="bg-white rounded-lg shadow p-4 sm:p-6">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-3">
                       <div>
                         <h3 className="text-lg font-bold text-gray-800">
                           #{idx + 1} {result.name}

@@ -71,6 +71,7 @@ router.post('/login', async (req, res) => {
     req.session.email = user.email;
     req.session.name = user.name;
     req.session.role = user.role;
+    req.session.roleId = user.role_id;
 
     res.json({ 
       message: 'Login successful',
@@ -78,7 +79,9 @@ router.post('/login', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        hotelName: user.hotel_name,
+        address: user.address
       }
     });
   } catch (error) {
@@ -95,7 +98,9 @@ router.get('/me', isAuthenticated, async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      hotelName: user.hotel_name,
+      address: user.address
     });
   } catch (error) {
     console.error('Get user error:', error);

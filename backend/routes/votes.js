@@ -1,5 +1,6 @@
 const express = require('express');
 const VoteModel = require('../models/Vote');
+const MealModel = require('../models/Meal');
 const { isAuthenticated } = require('../middleware/auth');
 
 const router = express.Router();
@@ -7,6 +8,7 @@ const router = express.Router();
 // Get today's meal voting results
 router.get('/results', async (req, res) => {
   try {
+    await MealModel.deleteExpiredMeals();
     const votes = await VoteModel.getMealVotesForToday();
     res.json(votes);
   } catch (error) {
@@ -18,9 +20,9 @@ router.get('/results', async (req, res) => {
 // Get results by location
 router.get('/results/:location', async (req, res) => {
   try {
+    await MealModel.deleteExpiredMeals();
     const { location } = req.params;
-    const today = new Date().toISOString().split('T')[0];
-    const votes = await VoteModel.getVotesForLocationMeals(location, today);
+    const votes = await VoteModel.getVotesForLocationMeals(location);
     res.json(votes);
   } catch (error) {
     console.error('Get location votes error:', error);
@@ -31,6 +33,7 @@ router.get('/results/:location', async (req, res) => {
 // Check if user has voted today
 router.get('/voted-today', isAuthenticated, async (req, res) => {
   try {
+    await MealModel.deleteExpiredMeals();
     const hasVoted = await VoteModel.hasUserVotedToday(req.session.userId);
     const vote = hasVoted ? await VoteModel.getUserVoteForToday(req.session.userId) : null;
     
@@ -47,10 +50,21 @@ router.get('/voted-today', isAuthenticated, async (req, res) => {
 // Vote for a meal (user can change their vote)
 router.post('/vote', isAuthenticated, async (req, res) => {
   try {
+    await MealModel.deleteExpiredMeals();
     const { mealId } = req.body;
 
     if (!mealId) {
       return res.status(400).json({ error: 'Meal ID required' });
+    }
+
+    const meal = await MealModel.getMealById(mealId);
+    if (!meal) {
+      return res.status(404).json({ error: 'Selected meal not found or expired' });
+    }
+
+    if (meal.deadline && new Date(meal.deadline).getTime() < Date.now()) {
+      await MealModel.deleteMeal(mealId);
+      return res.status(400).json({ error: 'Voting deadline has passed for this meal' });
     }
 
     const voteId = await VoteModel.createOrUpdateVote(req.session.userId, mealId);

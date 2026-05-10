@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
-const COLLEGES = ['VIT College', 'VIIT College', 'PUCT College', 'COEP College', 'Cummins College'];
+const COLLEGES = ['VIT College', 'VIIT College', 'PICT College', 'COEP College', 'Cummins College'];
 
 export default function AdminRegister() {
   const navigate = useNavigate();
@@ -78,8 +78,8 @@ export default function AdminRegister() {
         </div>
       </nav>
 
-      <div className="flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
+      <div className="flex items-center justify-center min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-6 sm:space-y-8 bg-white p-6 sm:p-8 rounded-lg shadow-md">
           <div>
             <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
               👨‍💼 Admin Registration

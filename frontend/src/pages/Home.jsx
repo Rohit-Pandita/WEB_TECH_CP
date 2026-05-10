@@ -13,20 +13,20 @@ export default function Home() {
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
         <div className="text-center text-white">
-          <h2 className="text-5xl font-bold mb-6">Welcome to Daily Menu Voting</h2>
-          <p className="text-2xl mb-8 leading-relaxed">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">Welcome to Daily Menu Voting</h2>
+          <p className="text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 leading-relaxed">
             Where restaurants post menu items and employees vote on their favorites.
           </p>
-          <p className="text-xl mb-12">
+          <p className="text-base sm:text-lg lg:text-xl mb-8 sm:mb-12">
             Easy voting for Breakfast 🌅, Lunch 🍽️, and Dinner 🌙
           </p>
 
           {/* Two Option Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
             {/* Admin Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
+            <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 hover:shadow-xl transition">
               <h3 className="text-2xl font-bold text-gray-800 mb-4">👨‍💼 Admin</h3>
               <p className="text-gray-700 mb-6">
                 Manage menu items for each meal
@@ -48,7 +48,7 @@ export default function Home() {
             </div>
 
             {/* User Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
+            <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 hover:shadow-xl transition">
               <h3 className="text-2xl font-bold text-gray-800 mb-4">🍽️ User</h3>
               <p className="text-gray-700 mb-6">
                 Vote on your favorite menu items
@@ -71,8 +71,8 @@ export default function Home() {
           </div>
 
           {/* How It Works */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mt-12 max-w-2xl mx-auto text-left">
-            <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">How It Works</h3>
+          <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 mt-10 sm:mt-12 max-w-2xl mx-auto text-left">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 text-center">How It Works</h3>
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mr-4 mt-1">1</div>

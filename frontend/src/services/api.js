@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -33,6 +33,18 @@ export const voteAPI = {
 };
 
 export const mealAPI = {
+  // Get menu meals for logged-in hotel owner
+  getOwnerMenu: (date = null) => {
+    const queryDate = date || new Date().toISOString().split('T')[0];
+    return api.get(`/meals/owner/menu?date=${queryDate}`);
+  },
+
+  // Get all meals for today (admin dashboard overview)
+  getToday: (date = null) => {
+    const queryDate = date || new Date().toISOString().split('T')[0];
+    return api.get(`/meals/today?date=${queryDate}`);
+  },
+
   // For admin - get meals by restaurant
   getByRestaurant: (restaurantId, date = null) => {
     const queryDate = date || new Date().toISOString().split('T')[0];
@@ -50,8 +62,13 @@ export const mealAPI = {
     api.get(`/meals/${id}`),
   
   // Create meal with deadline
-  create: (name, price, description, restaurantId, mealDate, deadline = null) =>
-    api.post('/meals', { name, price, description, restaurantId, mealDate, deadline }),
+  create: (name, price, description, restaurantId, mealDate, deadline = null) => {
+    const payload = { name, price, description, mealDate, deadline };
+    if (restaurantId) {
+      payload.restaurantId = restaurantId;
+    }
+    return api.post('/meals', payload);
+  },
   
   // Update meal with deadline
   update: (id, name, price, description, mealDate, deadline = null) =>

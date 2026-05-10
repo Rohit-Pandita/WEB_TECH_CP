@@ -10,9 +10,54 @@ const getMealsByRestaurantAndDate = async (restaurantId, mealDate) => {
        FROM meals m
        LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = ?
        WHERE m.restaurant_id = ? AND m.meal_date = ?
+         AND (m.deadline IS NULL OR m.deadline >= NOW())
        GROUP BY m.id
        ORDER BY m.created_at DESC`,
       [mealDate, restaurantId, mealDate]
+    );
+    return rows;
+  } finally {
+    connection.release();
+  }
+};
+
+// All meals for a restaurant name and date (covers duplicate restaurant rows for same hotel)
+const getMealsByRestaurantNameAndDate = async (restaurantName, mealDate) => {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      `SELECT m.id, m.name, m.price, m.description, m.restaurant_id, m.meal_date, m.deadline,
+              COUNT(v.id) as vote_count
+       FROM meals m
+       JOIN restaurants r ON m.restaurant_id = r.id
+       LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = ?
+       WHERE r.name = ? AND m.meal_date = ?
+         AND (m.deadline IS NULL OR m.deadline >= NOW())
+       GROUP BY m.id
+       ORDER BY m.created_at DESC`,
+      [mealDate, restaurantName, mealDate]
+    );
+    return rows;
+  } finally {
+    connection.release();
+  }
+};
+
+// All active meals for a restaurant name, regardless of date
+const getMealsByRestaurantName = async (restaurantName) => {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      `SELECT m.id, m.name, m.price, m.description, m.restaurant_id, m.meal_date, m.deadline,
+              COUNT(v.id) as vote_count
+       FROM meals m
+       JOIN restaurants r ON m.restaurant_id = r.id
+       LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = m.meal_date
+       WHERE r.name = ?
+         AND (m.deadline IS NULL OR m.deadline >= NOW())
+       GROUP BY m.id
+       ORDER BY m.created_at DESC`,
+      [restaurantName]
     );
     return rows;
   } finally {
@@ -32,9 +77,33 @@ const getMealsByLocationAndDate = async (location, mealDate) => {
        JOIN restaurants r ON m.restaurant_id = r.id
        LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = ?
        WHERE r.location = ? AND m.meal_date = ?
+         AND (m.deadline IS NULL OR m.deadline >= NOW())
        GROUP BY m.id
        ORDER BY m.created_at DESC`,
       [mealDate, location, mealDate]
+    );
+    return rows;
+  } finally {
+    connection.release();
+  }
+};
+
+// Get all active meals by location (no date filter)
+const getMealsByLocation = async (location) => {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      `SELECT m.id, m.name, m.price, m.description, m.restaurant_id, m.meal_date, m.deadline,
+              r.name as restaurant_name, r.location,
+              COUNT(v.id) as vote_count
+       FROM meals m
+       JOIN restaurants r ON m.restaurant_id = r.id
+       LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = m.meal_date
+       WHERE r.location = ?
+         AND (m.deadline IS NULL OR m.deadline >= NOW())
+       GROUP BY m.id
+       ORDER BY m.meal_date DESC, m.created_at DESC`,
+      [location]
     );
     return rows;
   } finally {
@@ -50,7 +119,8 @@ const getMealById = async (id) => {
       `SELECT m.*, r.name as restaurant_name, r.location
        FROM meals m
        JOIN restaurants r ON m.restaurant_id = r.id
-       WHERE m.id = ?`,
+       WHERE m.id = ?
+         AND (m.deadline IS NULL OR m.deadline >= NOW())`,
       [id]
     );
     return rows[0];
@@ -114,6 +184,7 @@ const getTodaysMealsByLocation = async (location) => {
        JOIN restaurants r ON m.restaurant_id = r.id
        LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = ?
        WHERE r.location = ? AND m.meal_date = ?
+         AND (m.deadline IS NULL OR m.deadline >= NOW())
        GROUP BY m.id
        ORDER BY m.created_at DESC`,
       [today, location, today]
@@ -124,12 +195,46 @@ const getTodaysMealsByLocation = async (location) => {
   }
 };
 
+// Get all meals across all restaurants for a given date
+const getAllMealsByDate = async (mealDate) => {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      `SELECT m.id, m.name, m.price, m.description, m.restaurant_id, m.meal_date, m.deadline,
+              r.name as restaurant_name, r.location,
+              COUNT(v.id) as vote_count
+       FROM meals m
+       JOIN restaurants r ON m.restaurant_id = r.id
+       LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = ?
+       WHERE m.meal_date = ?
+         AND (m.deadline IS NULL OR m.deadline >= NOW())
+       GROUP BY m.id
+       ORDER BY m.created_at DESC`,
+      [mealDate, mealDate]
+    );
+    return rows;
+  } finally {
+    connection.release();
+  }
+};
+
+// Delete meals whose deadline has passed, along with dependent votes
+const deleteExpiredMeals = async () => {
+  // Keep historical votes stable; expired meals are filtered at query level.
+  return 0;
+};
+
 module.exports = {
   getMealsByRestaurantAndDate,
+  getMealsByRestaurantNameAndDate,
+  getMealsByRestaurantName,
   getMealsByLocationAndDate,
+  getMealsByLocation,
   getMealById,
   createMeal,
   updateMeal,
   deleteMeal,
-  getTodaysMealsByLocation
+  getTodaysMealsByLocation,
+  getAllMealsByDate,
+  deleteExpiredMeals
 };

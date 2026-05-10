@@ -41,6 +41,20 @@ const getRestaurantById = async (id) => {
   }
 };
 
+// Get restaurant by exact name and location
+const getRestaurantByNameAndLocation = async (name, location = null) => {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      'SELECT id, name, location FROM restaurants WHERE name = ? AND ((location IS NULL AND ? IS NULL) OR location = ?) LIMIT 1',
+      [name, location, location]
+    );
+    return rows[0];
+  } finally {
+    connection.release();
+  }
+};
+
 // Create restaurant (admin only)
 const createRestaurant = async (name, location = null) => {
   const connection = await pool.getConnection();
@@ -53,6 +67,21 @@ const createRestaurant = async (name, location = null) => {
   } finally {
     connection.release();
   }
+};
+
+// Ensure a single restaurant row exists for an owner profile
+const getOrCreateRestaurant = async (name, location = null) => {
+  const existingRestaurant = await getRestaurantByNameAndLocation(name, location);
+  if (existingRestaurant) {
+    return existingRestaurant;
+  }
+
+  const id = await createRestaurant(name, location);
+  return {
+    id,
+    name,
+    location
+  };
 };
 
 // Update restaurant (admin only)
@@ -85,7 +114,9 @@ module.exports = {
   getAllRestaurants,
   getRestaurantsByLocation,
   getRestaurantById,
+  getRestaurantByNameAndLocation,
   createRestaurant,
+  getOrCreateRestaurant,
   updateRestaurant,
   deleteRestaurant
 };

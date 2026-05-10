@@ -4,17 +4,15 @@ const pool = require('../config/database');
 const getMealVotesForToday = async () => {
   const connection = await pool.getConnection();
   try {
-    const today = new Date().toISOString().split('T')[0];
     const [rows] = await connection.query(
       `SELECT m.id, m.name, m.price, m.restaurant_id, r.name as restaurant_name, r.location,
               COUNT(v.id) as vote_count
        FROM meals m
        JOIN restaurants r ON m.restaurant_id = r.id
-       LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = ?
-       WHERE m.meal_date = ?
+       LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = CURDATE()
        GROUP BY m.id
-       ORDER BY vote_count DESC`,
-      [today, today]
+       HAVING COUNT(v.id) > 0
+       ORDER BY vote_count DESC`
     );
     return rows;
   } finally {
@@ -90,18 +88,19 @@ const getVotesForMeal = async (mealId, voteDate) => {
 };
 
 // Get votes for all meals in a location on a date
-const getVotesForLocationMeals = async (location, voteDate) => {
+const getVotesForLocationMeals = async (location) => {
   const connection = await pool.getConnection();
   try {
     const [rows] = await connection.query(
-      `SELECT m.id, m.name, COUNT(v.id) as vote_count
+      `SELECT m.id, m.name, r.name as restaurant_name, r.location, COUNT(v.id) as vote_count
        FROM meals m
        JOIN restaurants r ON m.restaurant_id = r.id
-       LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = ?
-       WHERE r.location = ? AND m.meal_date = ?
+       LEFT JOIN votes v ON m.id = v.meal_id AND v.vote_date = CURDATE()
+       WHERE r.location = ?
        GROUP BY m.id
+       HAVING COUNT(v.id) > 0
        ORDER BY vote_count DESC`,
-      [voteDate, location, voteDate]
+      [location]
     );
     return rows;
   } finally {
